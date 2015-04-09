@@ -1,0 +1,172 @@
+<?php 
+/**
+ * @file
+ * adds a formatter for image fields that views them as a book
+ *
+ */
+ drupal_add_js(drupal_get_path('module', 'imagebook') . '/js/jquery.onebook3d.min.js');
+  drupal_add_js(drupal_get_path('module', 'imagebook') . '/js/jquery.mousewheel.min.js');
+  drupal_add_js(drupal_get_path('module', 'imagebook') . '/js/myscript.js');
+ function imagebook_field_formatter_info() {
+  return array(
+    'imagebook_formatter' => array( //Machine name of the formatter
+      'label' => t('imagebook'),
+      'field types' => array('image'), //This will only be available to ‫image fields
+      'settings'  => array( //Array of the settings we'll create
+        'image_style' => ' ', //give a default value for when the form is first loaded
+        'image_link' => ' ', //ditto
+        'image_width' => ' ',
+      ),
+    ),
+  );
+}
+
+/**
+ * Implements hook_field_formatter_settings_form().
+ */
+function imagebook_field_formatter_settings_form($field, $instance, $view_mode, $form, &$form_state) {
+  //This gets the view_mode where our settings are stored
+  $display = $instance['display'][$view_mode];
+  //This gets the actual settings
+  $settings = $display['settings'];
+  //Initialize the element variable
+  $element = array();
+  //Add your select box
+  $image_styles = image_style_options(FALSE, PASS_THROUGH);
+  $element['image_style'] = array(
+    '#title' => t('Image style'),
+    '#type' => 'select',
+    '#default_value' => $settings['image_style'],
+    '#empty_option' => t('None (original image)'),
+    '#options' => $image_styles,
+  );
+  $link_types = array(
+    'content' => t('Content'),
+    'file' => t('File'),
+  );
+  $element['image_link'] = array(
+    '#title' => t('Link image to'),
+    '#type' => 'select',
+    '#default_value' => $settings['image_link'],
+    '#empty_option' => t('Nothing'),
+    '#options' => $link_types,
+  );
+  $width_size=array(
+    'large' =>t('550px'),
+    'medium' =>t('350px'),
+    'small' =>t('250px'),
+   );
+  $element['image_width'] =array(
+    '#title' => t('Select width'),
+    '#type' => 'select',
+    '#default_value' => '500px',
+    '#empty_option' => t('Nothing'),
+    '#options' => $width_size,
+  );
+  return $element;
+}
+
+/*function imagebook_field_formatter_settings_form($field, $instance, $view_mode, $form, &$form_state) {
+  $display = $instance['display'][$view_mode];
+  $settings = $display['settings'];
+
+  $image_styles = image_style_options(FALSE, PASS_THROUGH);
+  $element['image_style'] = array(
+    '#title' => t('Image style'),
+    '#type' => 'select',
+    '#default_value' => $settings['image_style'],
+    '#empty_option' => t('None (original image)'),
+    '#options' => $image_styles,
+  );
+
+  $link_types = array(
+    'content' => t('Content'),
+    'file' => t('File'),
+  );
+  $element['image_link'] = array(
+    '#title' => t('Link image to'),
+    '#type' => 'select',
+    '#default_value' => $settings['image_link'],
+    '#empty_option' => t('Nothing'),
+    '#options' => $link_types,
+  );
+ return $element;
+}
+*/
+function imagebook_field_formatter_settings_summary($field, $instance, $view_mode) {
+  $display = $instance['display'][$view_mode];
+  $settings = $display['settings'];
+
+  $summary = array();
+
+  $image_styles = image_style_options(FALSE, PASS_THROUGH);
+  // Unset possible 'No defined styles' option.
+  unset($image_styles['']);
+  // Styles could be lost because of enabled/disabled modules that defines
+  // their styles in code.
+  if (isset($image_styles[$settings['image_style']])) {
+    $summary[] = t('Image style: @style', array('@style' => $image_styles[$settings['image_style']]));
+  }
+  else {
+    $summary[] = t('Original image');
+  }
+
+  $link_types = array(
+    'content' => t('Linked to content'),
+    'file' => t('Linked to file'),
+  );
+  // Display this setting only if image is linked.
+  if (isset($link_types[$settings['image_link']])) {
+    $summary[] = $link_types[$settings['image_link']];
+  }
+
+  return implode('<br />', $summary);
+}
+
+function imagebook_field_formatter_view($entity_type, $entity, $field, $instance, $langcode, $items, $display) {
+  $element = array();
+  if ($display['settings']['image_link'] == 'content') {
+    $uri = entity_uri($entity_type, $entity);
+  }
+  elseif ($display['settings']['image_link'] == 'file') {
+    $link_file = TRUE;
+  }
+  $img_path=array();
+  
+  $myimg_path=array();
+  // foreach ($items as $delta => $item) {
+    
+  //   // theme('imagebook',$items);
+  //  // dpm($items);
+  //   $element[$delta] = array(
+  //     '#theme' => 'imagebook',
+  //     '#item' => $item,
+  //     '#image_style' => $display['settings']['image_style'],
+  //     '#path' => isset($uri) ? $uri : '',
+  //   );  
+  // }
+
+  $element = array(
+    '#theme' => 'imagebook',
+  );
+  $val=array();
+  foreach ($items as $key => $val) {
+    # code...
+    $val[$key]=$items[$key]['uri'];
+    $img_path[$key]=file_create_url($val[$key]);
+  }
+  drupal_add_js(array('imagebook' => array('testvar' => $img_path)), array('type' => 'setting'));
+  drupal_add_js(drupal_get_path('module', 'imagebook') . '/js/myscript.js'); 
+  return $element;
+}
+
+/**
+ * Implements hook_theme().
+ */
+function imagebook_theme() {
+  return array(
+    'imagebook' => array(
+      'template' => 'imagebook',
+    ),
+  );
+}
