@@ -1,0 +1,5 @@
+name = Images as book
+description = "Add a formatter to image fields that allows Admins to determine how images will be displayed"
+core = 7.x
+files[] = imagebook.module
+package=fields
