@@ -4,7 +4,6 @@
       if (settings.imagebook !== undefined){
           var src5 = [];
           for (var k in settings.imagebook.testvar){
-            alert(settings.imagebook.testvar);
             if (settings.imagebook.testvar.hasOwnProperty(k)) {
                 src5[k]= settings.imagebook.testvar[k];  
             } 

@@ -142,4 +142,3 @@ function imagebook_theme() {
     ),
   );
 }
-

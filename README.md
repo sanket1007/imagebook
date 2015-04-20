@@ -1,4 +1,3 @@
-
 # imagebook
 
 This module enables you to view your multiple images as a book.
